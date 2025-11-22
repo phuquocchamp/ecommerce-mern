@@ -1,0 +1,83 @@
+services:
+  client:
+    build: client
+    container_name: client
+    ports:
+      - '${CLIENT_PORT}:3000'
+    environment:
+      - API_URL=${API_URL}
+    networks:
+      - app-network
+    restart: unless-stopped
+    depends_on:
+      - server
+
+  server:
+    build: server
+    container_name: server
+    environment:
+      - PORT=${SERVER_PORT}
+      - BASE_API_URL=${BASE_API_URL}
+      
+      - CLIENT_URL=${CLIENT_URL}
+      - JWT_SECRET=${JWT_SECRET}
+
+      - MONGO_URI=${MONGO_URI}
+
+      - MAILCHIMP_KEY=${MAILCHIMP_KEY}
+      - MAILCHIMP_LIST_KEY=${MAILCHIMP_LIST_KEY}
+
+      - MAILGUN_KEY=${MAILGUN_KEY}
+      - MAILGUN_DOMAIN=${MAILGUN_DOMAIN}
+      - MAILGUN_EMAIL_SENDER=${MAILGUN_EMAIL_SENDER}
+
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL}
+
+      - FACEBOOK_CLIENT_ID=${FACEBOOK_CLIENT_ID}
+      - FACEBOOK_CLIENT_SECRET=${FACEBOOK_CLIENT_SECRET}
+      - FACEBOOK_CALLBACK_URL=${FACEBOOK_CALLBACK_URL}
+
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
+    ports:
+      - '${SERVER_PORT}:8080'
+    command: [
+        'sh',
+        '-c',
+        'npm run seed:db ${ADMIN_EMAIL} ${ADMIN_PASSWORD} && npm start'
+      ]
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    command: mongod --quiet --logpath /dev/null
+    ports:
+      - '${MONGO_PORT}:27017'
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
