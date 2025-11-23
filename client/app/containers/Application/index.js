@@ -32,6 +32,7 @@ import Contact from '../Contact';
 import OrderSuccess from '../OrderSuccess';
 import OrderPage from '../OrderPage';
 import AuthSuccess from '../AuthSuccess';
+import HealthCheck from '../HealthCheck';
 
 import Footer from '../../components/Common/Footer';
 import Page404 from '../../components/Common/Page404';
@@ -81,6 +82,7 @@ class Application extends React.PureComponent {
           <Container>
             <div className='wrapper'>
               <Switch>
+                <Route exact path='/health' component={HealthCheck} />
                 <Route exact path='/' component={HomePage} />
                 <Route path='/shop' component={Shop} />
                 <Route path='/sell' component={Sell} />
